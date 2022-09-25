@@ -109,7 +109,7 @@ create table if not exists time(
 staging_events_copy = ("""copy staging_events FROM {}
                             iam_role {}
                             format as json {}
-""").format(config['S3']['LOG_DATA'], config['IAM_ROLE']['ARN'],                   config['S3']['LOG_JSONPATH'])
+""").format(config['S3']['LOG_DATA'], config['IAM_ROLE']['ARN'], config['S3']['LOG_JSONPATH'])
 
 staging_songs_copy = ("""copy staging_songs FROM {}
                             iam_role {}
@@ -119,22 +119,22 @@ staging_songs_copy = ("""copy staging_songs FROM {}
 # FINAL TABLES
 
 songplay_table_insert = ("""insert into songplays (start_time, 
-                            user_id, level, song_id, artist_id,                                     session_id, location, user_agent) 
+                            user_id, level, song_id, artist_id, session_id, location, user_agent) 
                             select distinct (TIMESTAMP 'epoch' + 
-                            (ts / 1000) * INTERVAL '1 second') as                                   start_time,
+                            (ts / 1000) * INTERVAL '1 second') asstart_time,
                             userId AS user_id ,
-                            level,                                                                 song_id, 
+                            level, song_id, 
                             artist_id,  
                             sessionId as session_id, 
                             location, 
                             userAgent as user_agent
                             from staging_events se
                             join staging_songs ss
-                            on ss.title=se.song and                                                 se.artist=ss.artist_name and                                           se.length=ss.duration
+                            on ss.title=se.song and se.artist=ss.artist_name and se.length=ss.duration
                             where se.page='NextSong'
 """)
 
-user_table_insert = ("""insert into users select distinct userId AS                            user_id, 
+user_table_insert = ("""insert into users select distinct userId AS user_id, 
                        firstName AS first_name, 
                        lastName AS last_name,
                        gender, 
@@ -143,14 +143,14 @@ user_table_insert = ("""insert into users select distinct userId AS             
                        where page='NextSong'
 """)
 
-song_table_insert = ("""insert into songs select distinct song_id,                             title, 
+song_table_insert = ("""insert into songs select distinct song_id, title, 
                         artist_id,
                         year, 
                         duration
                         from staging_songs
 """)
 
-artist_table_insert = ("""insert into artists select distinct                                     artist_id, 
+artist_table_insert = ("""insert into artists select distinct  artist_id, 
                           artist_name AS name, 
                           artist_location AS location, 
                           artist_latitude AS latitude, 
